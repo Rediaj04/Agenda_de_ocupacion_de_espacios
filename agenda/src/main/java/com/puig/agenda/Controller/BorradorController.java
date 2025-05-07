@@ -1,6 +1,6 @@
-package com.puig.agenda;
+package com.puig.agenda.Controller;
 
-import org.springframework.web.bind.annotation.RequestMapping; 
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
