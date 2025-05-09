@@ -21,6 +21,14 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
+        .invalid-feedback {
+            display: none;
+            color: #dc3545;
+        }
+        .was-validated .form-control:invalid ~ .invalid-feedback,
+        .was-validated .form-control:invalid ~ .invalid-feedback-name {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -28,19 +36,25 @@
         <div class="upload-container">
             <h2 class="text-center mb-4">Agenda de Ocupación de Espacios</h2>
             
-            <form th:action="@{/procesar}" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+            <form th:action="@{/procesar}" method="post" enctype="multipart/form-data" class="needs-validation" novalidate id="uploadForm">
                 <div class="file-input-container">
                     <label for="configFile" class="form-label">Archivo de Configuración (config.txt)</label>
                     <input type="file" class="form-control" id="configFile" name="configFile" required
                            accept=".txt">
-                    <div class="form-text">Formato esperado: año mes en la primera línea, idiomas en la segunda</div>
+                    <div class="invalid-feedback">Por favor, seleccione un archivo.</div>
+                    <div class="invalid-feedback-name" id="configError" style="display: none;">
+                        El archivo debe llamarse exactamente "config.txt"
+                    </div>
                 </div>
 
                 <div class="file-input-container">
-                    <label for="peticionesFile" class="form-label">Archivo de Peticiones (peticiones.txt)</label>
+                    <label for="peticionesFile" class="form-label">Archivo de Peticiones (peticions.txt)</label>
                     <input type="file" class="form-control" id="peticionesFile" name="peticionesFile" required
                            accept=".txt">
-                    <div class="form-text">Formato: NombreActividad Sala FechaInicio FechaFin DíasHoras Horarios</div>
+                    <div class="invalid-feedback">Por favor, seleccione un archivo.</div>
+                    <div class="invalid-feedback-name" id="peticionesError" style="display: none;">
+                        El archivo debe llamarse exactamente "peticions.txt"
+                    </div>
                 </div>
 
                 <div class="d-grid gap-2">
@@ -52,20 +66,52 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Validación del formulario
         (function () {
             'use strict'
-            var forms = document.querySelectorAll('.needs-validation')
-            Array.prototype.slice.call(forms).forEach(function (form) {
-                form.addEventListener('submit', function (event) {
-                    if (!form.checkValidity()) {
-                        event.preventDefault()
-                        event.stopPropagation()
-                    }
-                    form.classList.add('was-validated')
-                }, false)
-            })
-        })()
+            
+            // Obtener el formulario
+            var form = document.getElementById('uploadForm');
+            
+            // Agregar validación personalizada para los nombres de archivo
+            form.addEventListener('submit', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                let isValid = true;
+                
+                // Validar archivo de configuración
+                const configFile = document.getElementById('configFile');
+                const configError = document.getElementById('configError');
+                if (configFile.files.length === 0) {
+                    configError.style.display = 'none';
+                    isValid = false;
+                } else if (configFile.files[0].name !== 'config.txt') {
+                    configError.style.display = 'block';
+                    isValid = false;
+                } else {
+                    configError.style.display = 'none';
+                }
+                
+                // Validar archivo de peticiones
+                const peticionesFile = document.getElementById('peticionesFile');
+                const peticionesError = document.getElementById('peticionesError');
+                if (peticionesFile.files.length === 0) {
+                    peticionesError.style.display = 'none';
+                    isValid = false;
+                } else if (peticionesFile.files[0].name !== 'peticions.txt') {
+                    peticionesError.style.display = 'block';
+                    isValid = false;
+                } else {
+                    peticionesError.style.display = 'none';
+                }
+                
+                form.classList.add('was-validated');
+                
+                if (isValid) {
+                    form.submit();
+                }
+            }, false);
+        })();
     </script>
 </body>
-</html> 
+</html>
