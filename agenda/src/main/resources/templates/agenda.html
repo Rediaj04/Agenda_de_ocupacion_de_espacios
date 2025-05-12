@@ -4,73 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agenda de Espacios</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .agenda-container {
-            margin: 2rem auto;
-            padding: 1rem;
-        }
-        .sala-tabla {
-            margin-bottom: 2rem;
-            border: 1px solid #dee2e6;
-            border-radius: 0.25rem;
-        }
-        .sala-tabla th {
-            background-color: #f8f9fa;
-        }
-        .ocupado {
-            background-color: #ffc107;
-        }
-        .conflicto {
-            background-color: #dc3545;
-        }
-        .disponible {
-            background-color: #28a745;
-        }
-        .nav-tabs {
-            margin-bottom: 1rem;
-        }
-        .incidencias-container {
-            margin-top: 2rem;
-            padding: 1rem;
-            border: 1px solid #dee2e6;
-            border-radius: 0.25rem;
-        }
-        .incidencia-item {
-            padding: 0.5rem;
-            margin-bottom: 0.5rem;
-            border-left: 4px solid #dc3545;
-            background-color: #f8f9fa;
-        }
-    </style>
+    <link href="css/agenda.css" rel="stylesheet">
 </head>
 <body>
-    <div class="container agenda-container">
-        <h2 class="text-center mb-4">Agenda de Ocupación de Espacios</h2>
-        
-        <!-- Pestañas para cada sala -->
-        <ul class="nav nav-tabs" id="salaTabs" role="tablist">
-            <li class="nav-item" th:each="sala : ${salas}">
-                <a class="nav-link" th:classappend="${salaStat.first} ? 'active'" 
-                   th:id="'sala-' + ${sala.id} + '-tab'"
-                   data-bs-toggle="tab" 
-                   th:href="'#sala-' + ${sala.id}"
-                   th:text="${sala.nombre}"
-                   role="tab">
-                </a>
-            </li>
-        </ul>
+    <div class="agenda-container">
+        <h2 class="agenda-title">Agenda de Ocupación de Espacios</h2>
 
-        <!-- Contenido de las pestañas -->
-        <div class="tab-content" id="salaTabContent">
+        <!-- Botones para cambiar de sala -->
+        <div class="agenda-nav">
+            <button class="agenda-btn" th:each="sala : ${salas}" 
+                    th:data-id="'sala-' + ${sala.id}"
+                    th:text="${sala.nombre}">
+            </button>
+        </div>
+
+        <!-- Contenido de cada sala (solo una se muestra a la vez) -->
+        <div class="agenda-content">
             <div th:each="sala : ${salas}" 
-                 class="tab-pane fade" 
-                 th:classappend="${salaStat.first} ? 'show active'"
+                 class="agenda-sala"
                  th:id="'sala-' + ${sala.id}"
-                 role="tabpanel">
+                 style="display: none;">
                 
-                <div class="table-responsive sala-tabla">
-                    <table class="table table-bordered">
+                <h3 th:text="${sala.nombre}" class="agenda-sala-title"></h3>
+
+                <!-- Tabla de horarios -->
+                <div class="agenda-table-wrapper">
+                    <table class="agenda-table">
                         <thead>
                             <tr>
                                 <th>Hora</th>
@@ -88,24 +47,19 @@
                         </tbody>
                     </table>
                 </div>
-            </div>
-        </div>
 
-        <!-- Sección de Incidencias -->
-        <div class="incidencias-container" th:if="${not #lists.isEmpty(incidencias)}">
-            <h3>Incidencias Detectadas</h3>
-            <div class="incidencia-item" th:each="incidencia : ${incidencias}">
-                <strong th:text="${incidencia.tipo}"></strong>
-                <p class="mb-0" th:text="${incidencia.descripcion}"></p>
+                <!-- Sección de incidencias por sala -->
+                <div class="agenda-incidencias" th:if="${not #lists.isEmpty(sala.incidencias)}">
+                    <h3 class="agenda-incidencias-title">Incidencias Detectadas</h3>
+                    <div class="agenda-incidencia" th:each="incidencia : ${sala.incidencias}">
+                        <strong th:text="${incidencia.tipo}"></strong>
+                        <p th:text="${incidencia.descripcion}"></p>
+                    </div>
+                </div>
             </div>
-        </div>
-
-        <!-- Botón para volver -->
-        <div class="text-center mt-4">
-            <a th:href="@{/}" class="btn btn-primary">Volver al Inicio</a>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/agenda.js"></script>
 </body>
-</html> 
+</html>
