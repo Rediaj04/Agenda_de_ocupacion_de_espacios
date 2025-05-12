@@ -1,0 +1,86 @@
+/* Estilos generales */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 0;
+}
+
+/* Contenedor principal */
+.upload-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Caja de subida */
+.upload-box {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 500px;
+}
+
+/* Título */
+.upload-title {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+/* Grupos de archivos */
+.upload-file-group {
+    margin-bottom: 15px;
+}
+
+/* Etiquetas */
+.upload-label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 10px;
+    width: 70%; /* Reduce el ancho */
+    max-width: 300px; /* Limita el tamaño máximo */
+    text-align: left; /* Asegura alineación correcta */
+}
+
+
+/* Inputs de archivo */
+.upload-input {
+    width: 95%;
+    padding: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+}
+
+/* Mensajes de error */
+.upload-error-message, 
+.upload-error-name {
+    color: #dc3545;
+    font-size: 14px;
+    display: none;
+}
+
+/* Botón de envío */
+.upload-btn-group {
+    display: flex;
+    justify-content: center;
+}
+
+.upload-submit {
+    background: #007bff;
+    color: #ffffff;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.upload-submit:hover {
+    background: #0056b3;
+}
