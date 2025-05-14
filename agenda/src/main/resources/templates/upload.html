@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subir Archivos - Agenda de Espacios</title>
+    <link href="css/upload.css" rel="stylesheet">
+</head>
+<body>
+    <div class="upload-wrapper">
+        <div class="upload-box">
+            <h2 class="upload-title">Agenda de Ocupación de Espacios</h2>
+            <form th:action="@{/procesar}" method="post" enctype="multipart/form-data" class="upload-form needs-validation" novalidate id="uploadForm">
+                <div class="upload-file-group">
+                    <label for="configFile" class="upload-label">Archivo de Configuración (config.txt)</label>
+                    <input type="file" class="upload-input form-control" id="configFile" name="configFile" required accept=".txt">
+                    <div class="upload-error-message">Por favor, seleccione un archivo.</div>
+                    <div class="upload-error-name" id="configError" style="display: none;">
+                        El archivo debe llamarse exactamente "config.txt"
+                    </div>
+                </div>
+                <div class="upload-file-group">
+                    <label for="peticionesFile" class="upload-label">Archivo de Peticiones (peticions.txt)</label>
+                    <input type="file" class="upload-input form-control" id="peticionesFile" name="peticionesFile" required accept=".txt">
+                    <div class="upload-error-message">Por favor, seleccione un archivo.</div>
+                    <div class="upload-error-name" id="peticionesError" style="display: none;">
+                        El archivo debe llamarse exactamente "peticions.txt"
+                    </div>
+                </div>
+                <div class="upload-btn-group">
+                    <button type="submit" class="upload-submit btn btn-primary btn-lg">Generar Agenda</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    </div>
+    <script>
+        (function () {
+            'use strict'
+            
+            // Obtener el formulario
+            var form = document.getElementById('uploadForm');
+            
+            // Agregar validación personalizada para los nombres de archivo
+            form.addEventListener('submit', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                let isValid = true;
+                
+                // Validar archivo de configuración
+                const configFile = document.getElementById('configFile');
+                const configError = document.getElementById('configError');
+                if (configFile.files.length === 0) {
+                    configError.style.display = 'none';
+                    isValid = false;
+                } else if (configFile.files[0].name !== 'config.txt') {
+                    configError.style.display = 'block';
+                    isValid = false;
+                } else {
+                    configError.style.display = 'none';
+                }
+                
+                // Validar archivo de peticiones
+                const peticionesFile = document.getElementById('peticionesFile');
+                const peticionesError = document.getElementById('peticionesError');
+                if (peticionesFile.files.length === 0) {
+                    peticionesError.style.display = 'none';
+                    isValid = false;
+                } else if (peticionesFile.files[0].name !== 'peticions.txt') {
+                    peticionesError.style.display = 'block';
+                    isValid = false;
+                } else {
+                    peticionesError.style.display = 'none';
+                }
+                
+                form.classList.add('was-validated');
+                
+                if (isValid) {
+                    form.submit();
+                }
+            }, false);
+        })();
+    </script>
+</body>
+</html>

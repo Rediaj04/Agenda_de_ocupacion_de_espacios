@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda de Espacios</title>
+    <link href="css/agenda.css" rel="stylesheet">
+</head>
+<body>
+    <div class="agenda-container">
+        <h2 class="agenda-title">Agenda de Ocupación de Espacios</h2>
+
+        <!-- Botones para cambiar de sala -->
+        <div class="agenda-nav">
+            <button class="agenda-btn" th:each="sala : ${salas}" 
+                    th:data-id="'sala-' + ${sala.id}"
+                    th:text="${sala.nombre}">
+            </button>
+        </div>
+
+        <!-- Contenido de cada sala (solo una se muestra a la vez) -->
+        <div class="agenda-content">
+            <div th:each="sala : ${salas}" 
+                 class="agenda-sala"
+                 th:id="'sala-' + ${sala.id}"
+                 style="display: none;">
+                
+                <h3 th:text="${sala.nombre}" class="agenda-sala-title"></h3>
+
+                <!-- Tabla de horarios -->
+                <div class="agenda-table-wrapper">
+                    <table class="agenda-table">
+                        <thead>
+                            <tr>
+                                <th>Hora</th>
+                                <th th:each="dia : ${diasSemana}" th:text="${dia}"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="hora : ${horas}">
+                                <td th:text="${hora}"></td>
+                                <td th:each="dia : ${diasSemana}"
+                                    th:class="${sala.getEstado(dia, hora)}"
+                                    th:text="${sala.getActividad(dia, hora)}">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Sección de incidencias por sala -->
+                <div class="agenda-incidencias" th:if="${not #lists.isEmpty(sala.incidencias)}">
+                    <h3 class="agenda-incidencias-title">Incidencias Detectadas</h3>
+                    <div class="agenda-incidencia" th:each="incidencia : ${sala.incidencias}">
+                        <strong th:text="${incidencia.tipo}"></strong>
+                        <p th:text="${incidencia.descripcion}"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/agenda.js"></script>
+</body>
+</html>

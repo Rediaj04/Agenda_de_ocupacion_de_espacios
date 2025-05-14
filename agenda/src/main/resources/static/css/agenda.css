@@ -1,0 +1,80 @@
+/* Centrar todo el contenido */
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center; /* Centra horizontalmente */
+    align-items: center; /* Centra verticalmente */
+    min-height: 100vh; /* Asegura que ocupe toda la pantalla */
+    margin: 0;
+    padding: 0;
+    background-color: #f8f9fa;
+}
+
+/* Contenedor principal */
+.agenda-container {
+    max-width: 800px;
+    width: 90%;
+    padding: 20px;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+}
+
+
+/* Título */
+.agenda-title {
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+/* Navegación entre salas */
+.agenda-nav {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.agenda-btn {
+    padding: 10px 15px;
+    margin: 5px;
+    background: none;
+    color: #007bff;
+    border: 1px solid #007bff;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-weight: normal; /* Normal para todas */
+}
+
+.agenda-btn:hover {
+    background: #007bff;
+    color: white;
+}
+
+.agenda-btn.active {
+    font-weight: bold; /* Negrita para la sala activa */
+    border-color: #0056b3; /* Opcional: cambia el borde */
+    color: #0056b3; /* Opcional: cambia el color */
+}
+
+/* Tablas */
+.agenda-table-wrapper {
+    margin-top: 20px;
+    overflow-x: auto;
+}
+
+.agenda-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+}
+
+.agenda-table th, .agenda-table td {
+    border: 1px solid #dee2e6;
+    padding: 10px;
+}
+
+.agenda-table th {
+    background-color: #f8f9fa;
+}
