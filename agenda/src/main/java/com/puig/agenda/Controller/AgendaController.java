@@ -16,18 +16,19 @@ public class AgendaController {
     @GetMapping("/")
     public String mostrarFormulario() {
         return "upload";
-    }
+    };
 
     @PostMapping("/procesar")
     public String procesarArchivos(@RequestParam("configFile") MultipartFile configFile,
-                                   @RequestParam("peticionesFile") MultipartFile peticionesFile,
-                                   Model model) {
+            @RequestParam("peticionesFile") MultipartFile peticionesFile,
+            Model model) {
         // Crear salas
         Sala sala1 = new Sala("Sala 1", "Sala de Conferencias 1");
         Sala sala2 = new Sala("Sala 2", "Sala de Conferencias 2");
 
         // Asignar incidencias a Sala1
-        sala1.agregarIncidencia(new Incidencia("Conflicto", "Sala 1 tiene un conflicto de horario el Lunes a las 09:00"));
+        sala1.agregarIncidencia(
+                new Incidencia("Conflicto", "Sala 1 tiene un conflicto de horario el Lunes a las 09:00"));
 
         // Agregar salas al modelo
         model.addAttribute("salas", List.of(sala1, sala2));
@@ -35,7 +36,7 @@ public class AgendaController {
         model.addAttribute("horas", List.of("08:00", "09:00", "10:00", "11:00", "12:00"));
 
         return "agenda";
-    }
+    };
 
     // Clase interna para la sala
     private static class Sala {
@@ -49,11 +50,25 @@ public class AgendaController {
             this.incidencias = new ArrayList<>();
         }
 
-        public String getId() { return id; }
-        public String getNombre() { return nombre; }
-        public String getEstado(String dia, String hora) { return "disponible"; }
-        public String getActividad(String dia, String hora) { return ""; }
-        public List<Incidencia> getIncidencias() { return incidencias; }
+        public String getId() {
+            return id;
+        }
+
+        public String getNombre() {
+            return nombre;
+        }
+
+        public String getEstado(String dia, String hora) {
+            return "disponible";
+        }
+
+        public String getActividad(String dia, String hora) {
+            return "";
+        }
+
+        public List<Incidencia> getIncidencias() {
+            return incidencias;
+        }
 
         public void agregarIncidencia(Incidencia incidencia) {
             this.incidencias.add(incidencia);
@@ -70,7 +85,12 @@ public class AgendaController {
             this.descripcion = descripcion;
         }
 
-        public String getTipo() { return tipo; }
-        public String getDescripcion() { return descripcion; }
+        public String getTipo() {
+            return tipo;
+        }
+
+        public String getDescripcion() {
+            return descripcion;
+        }
     }
 }

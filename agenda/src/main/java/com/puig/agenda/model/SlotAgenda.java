@@ -6,11 +6,13 @@ public class SlotAgenda {
     public enum SlotStatus {
         FREE,
         BOOKED,
-        PENDING
+        PENDING,
+        BLOCKED
     };
+
     private LocalTime startTime;
     private LocalTime endTime;
-
+    private String assignedActivityName;
 
     public SlotAgenda() {}
 
@@ -28,5 +30,13 @@ public class SlotAgenda {
 
     public void setEndTime(LocalTime endTime) {
         this.endTime = endTime;
+    }
+
+    public String getAssignedActivityName() {
+        return assignedActivityName;
+    }
+
+    public void setAssignedActivityName(String assignedActivityName) {
+        this.assignedActivityName = assignedActivityName;
     }
 }

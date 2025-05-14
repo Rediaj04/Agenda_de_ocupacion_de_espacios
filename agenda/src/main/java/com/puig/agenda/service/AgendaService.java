@@ -1,5 +1,5 @@
 package com.puig.agenda.service;
 
-public class BorradorService {
+public class AgendaService {
     
 }
