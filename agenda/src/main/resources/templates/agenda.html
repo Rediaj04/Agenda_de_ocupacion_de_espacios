@@ -8,13 +8,17 @@
 </head>
 <body>
     <div class="agenda-container">
-        <h2 class="agenda-title">Agenda de Ocupación de Espacios</h2>
+        <h2 class="agenda-title">
+            Agenda de Ocupación de Espacios - 
+            <span th:text="${agenda.nameMonth}"></span> 
+            <span th:text="${agenda.year}"></span>
+        </h2>
 
         <!-- Botones para cambiar de sala -->
         <div class="agenda-nav">
             <button class="agenda-btn" th:each="sala : ${salas}" 
-                    th:data-id="'sala-' + ${sala.id}"
-                    th:text="${sala.nombre}">
+                    th:data-id="'sala-' + ${sala.roomName}"
+                    th:text="${sala.roomName}">
             </button>
         </div>
 
@@ -22,13 +26,14 @@
         <div class="agenda-content">
             <div th:each="sala : ${salas}" 
                  class="agenda-sala"
-                 th:id="'sala-' + ${sala.id}"
-                 style="display: none;">
+                 th:id="'sala-' + ${sala.roomName}"
+                 th:style="${salaStat.first} ? 'display: block;' : 'display: none;'">
                 
-                <h3 th:text="${sala.nombre}" class="agenda-sala-title"></h3>
+                <h3 th:text="${sala.roomName}" class="agenda-sala-title"></h3>
 
-                <!-- Tabla de horarios -->
-                <div class="agenda-table-wrapper">
+                <!-- Tabla de horarios por semanas -->
+                <div class="agenda-table-wrapper" th:each="semana : ${sala.weekMonth}">
+                    <h4 th:text="'Semana ' + ${semana.weekNumber}"></h4>
                     <table class="agenda-table">
                         <thead>
                             <tr>
@@ -39,23 +44,29 @@
                         <tbody>
                             <tr th:each="hora : ${horas}">
                                 <td th:text="${hora}"></td>
-                                <td th:each="dia : ${diasSemana}"
-                                    th:class="${sala.getEstado(dia, hora)}"
-                                    th:text="${sala.getActividad(dia, hora)}">
+                                <!-- Para cada día, buscamos la celda correspondiente a esta hora -->
+                                <td th:each="dia, diaStat : ${diasSemana}">
+                                    <div th:each="diaModel : ${semana.days}" 
+                                         th:if="${diaModel.dayOfWeek == diaStat.count}">
+                                        <div th:each="celda : ${diaModel.cells}" 
+                                             th:if="${celda.hour == hora}"
+                                             th:class="${celda.status.toLowerCase()}"
+                                             th:text="${celda.activity}">
+                                        </div>
+                                    </div>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
-
-                <!-- Sección de incidencias por sala -->
-                <div class="agenda-incidencias" th:if="${not #lists.isEmpty(sala.incidencias)}">
-                    <h3 class="agenda-incidencias-title">Incidencias Detectadas</h3>
-                    <div class="agenda-incidencia" th:each="incidencia : ${sala.incidencias}">
-                        <strong th:text="${incidencia.tipo}"></strong>
-                        <p th:text="${incidencia.descripcion}"></p>
-                    </div>
-                </div>
+            </div>
+        </div>
+        
+        <!-- Sección de incidencias global -->
+        <div class="agenda-incidencias" th:if="${not #lists.isEmpty(agenda.incidences)}">
+            <h3 class="agenda-incidencias-title">Incidencias Detectadas</h3>
+            <div class="agenda-incidencia" th:each="incidencia : ${agenda.incidences}">
+                <p th:text="${incidencia.description}"></p>
             </div>
         </div>
     </div>

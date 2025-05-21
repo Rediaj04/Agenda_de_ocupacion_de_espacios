@@ -1,8 +1,12 @@
 package com.puig.agenda.Controller;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.Month;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,87 +14,229 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.puig.agenda.model.Configuration;
+import com.puig.agenda.model.Incidence;
+import com.puig.agenda.model.Request;
+import com.puig.agenda.service.AgendaService;
+import com.puig.agenda.service.AgendaService.AgendaProcessingResult;
+import com.puig.agenda.service.AgendaService.SlotInfo;
+import com.puig.agenda.service.DataService;
+import com.puig.agenda.viewmodel.*;
+
 @Controller
 public class AgendaController {
+
+    @Autowired
+    private AgendaService agendaService;
+
+    @Autowired
+    private DataService dataService;
 
     @GetMapping("/")
     public String mostrarFormulario() {
         return "upload";
-    };
+    }
 
     @PostMapping("/procesar")
     public String procesarArchivos(@RequestParam("configFile") MultipartFile configFile,
             @RequestParam("peticionesFile") MultipartFile peticionesFile,
             Model model) {
-        // Crear salas
-        Sala sala1 = new Sala("Sala 1", "Sala de Conferencias 1");
-        Sala sala2 = new Sala("Sala 2", "Sala de Conferencias 2");
+        try {
+            // Parsear archivos de configuración y peticiones
+            Configuration config = dataService.parseConfigFile(configFile);
+            List<Request> requests = dataService.parseRequestsFile(peticionesFile);
 
-        // Asignar incidencias a Sala1
-        sala1.agregarIncidencia(
-                new Incidencia("Conflicto", "Sala 1 tiene un conflicto de horario el Lunes a las 09:00"));
+            // Procesar la agenda
+            AgendaProcessingResult result = agendaService.processAgenda(config, requests);
 
-        // Agregar salas al modelo
-        model.addAttribute("salas", List.of(sala1, sala2));
-        model.addAttribute("diasSemana", List.of("L", "M", "X", "J", "V", "S", "D"));
-        model.addAttribute("horas", List.of("08:00", "09:00", "10:00", "11:00", "12:00"));
+            // Convertir el resultado a ViewModel para la vista
+            AgendaViewModel viewModel = convertirAViewModel(config, result);
 
-        return "agenda";
-    };
+            // Añadir al modelo para la vista
+            model.addAttribute("agenda", viewModel);
+            model.addAttribute("salas", viewModel.getRooms());
 
-    // Clase interna para la sala
-    private static class Sala {
-        private String id;
-        private String nombre;
-        private List<Incidencia> incidencias;
+            // Generar días de la semana según idioma de salida
+            List<String> diasSemana = generarDiasSemana(config.getExitLanguage());
+            model.addAttribute("diasSemana", diasSemana);
 
-        public Sala(String id, String nombre) {
-            this.id = id;
-            this.nombre = nombre;
-            this.incidencias = new ArrayList<>();
-        }
+            // Generar horas del día
+            List<String> horas = generarHoras();
+            model.addAttribute("horas", horas);
 
-        public String getId() {
-            return id;
-        }
-
-        public String getNombre() {
-            return nombre;
-        }
-
-        public String getEstado(String dia, String hora) {
-            return "disponible";
-        }
-
-        public String getActividad(String dia, String hora) {
-            return "";
-        }
-
-        public List<Incidencia> getIncidencias() {
-            return incidencias;
-        }
-
-        public void agregarIncidencia(Incidencia incidencia) {
-            this.incidencias.add(incidencia);
+            return "agenda";
+        } catch (Exception e) {
+            // Manejar errores y mostrar página de error
+            model.addAttribute("error", "Error al procesar los archivos: " + e.getMessage());
+            return "error";
         }
     }
 
-    // Clase interna para la incidencia
-    private static class Incidencia {
-        private String tipo;
-        private String descripcion;
+    /**
+     * Convierte el resultado del proceso de la agenda en un ViewModel para la vista
+     */
+    private AgendaViewModel convertirAViewModel(Configuration config, AgendaProcessingResult result) {
+        AgendaViewModel viewModel = new AgendaViewModel();
 
-        public Incidencia(String tipo, String descripcion) {
-            this.tipo = tipo;
-            this.descripcion = descripcion;
+        // Establecer año y mes
+        viewModel.setYear(config.getYear());
+        viewModel.setNameMonth(obtenerNombreMes(config.getMonth(), config.getExitLanguage()));
+
+        // Convertir salas
+        List<RoomViewModel> roomViewModels = new ArrayList<>();
+
+        // Obtener todos los slots e incidencias
+        Map<String, Map<LocalDate, Map<LocalTime, SlotInfo>>> schedule = result.finalSchedule();
+        List<Incidence> incidences = result.incidences();
+
+        // Procesar cada sala
+        for (String roomName : schedule.keySet()) {
+            RoomViewModel roomVM = new RoomViewModel();
+            roomVM.setRoomName(roomName);
+
+            // Organizar por semanas
+            Map<LocalDate, Map<LocalTime, SlotInfo>> roomSchedule = schedule.get(roomName);
+            List<WeekViewModel> weeks = organizarPorSemanas(roomSchedule, config.getMonth(), config.getYear());
+            roomVM.setWeekMonth(weeks);
+
+            roomViewModels.add(roomVM);
         }
 
-        public String getTipo() {
-            return tipo;
+        viewModel.setRooms(roomViewModels);
+
+        // Convertir incidencias
+        List<IncidenceViewModel> incidenceViewModels = new ArrayList<>();
+        for (Incidence incidence : incidences) {
+            IncidenceViewModel incVM = new IncidenceViewModel();
+            incVM.setDescription(incidence.getReason());
+            incidenceViewModels.add(incVM);
         }
 
-        public String getDescripcion() {
-            return descripcion;
+        viewModel.setIncidences(incidenceViewModels);
+
+        return viewModel;
+    }
+
+    /**
+     * Organiza los slots por semanas para una sala
+     */
+    private List<WeekViewModel> organizarPorSemanas(Map<LocalDate, Map<LocalTime, SlotInfo>> roomSchedule,
+            int month, int year) {
+        List<WeekViewModel> weeks = new ArrayList<>();
+
+        // Obtener todas las fechas para el mes y año configurados
+        List<LocalDate> fechasDelMes = new ArrayList<>();
+        for (LocalDate date : roomSchedule.keySet()) {
+            if (date.getMonthValue() == month && date.getYear() == year) {
+                fechasDelMes.add(date);
+            }
+        }
+
+        // Ordenar fechas
+        Collections.sort(fechasDelMes);
+
+        // Agrupar por semanas
+        Map<Integer, List<DayViewModel>> diasPorSemana = new HashMap<>();
+
+        for (LocalDate date : fechasDelMes) {
+            // Calcular número de semana dentro del mes
+            int weekOfMonth = (date.getDayOfMonth() - 1) / 7 + 1;
+
+            // Crear objeto día
+            DayViewModel day = new DayViewModel();
+            day.setNumeroDelMes(date.getDayOfMonth());
+            day.setDayOfWeek(date.getDayOfWeek().getValue()); // Guardar el día de la semana
+            day.setNombreDiaSemana(date.getDayOfWeek().toString()); // Opcional: nombre del día
+
+            // Añadir slots del día
+            List<AgendaCellViewModel> cells = new ArrayList<>();
+            Map<LocalTime, SlotInfo> daySlots = roomSchedule.get(date);
+
+            if (daySlots != null) {
+                for (LocalTime time : daySlots.keySet()) {
+                    SlotInfo slotInfo = daySlots.get(time);
+
+                    AgendaCellViewModel cell = new AgendaCellViewModel();
+                    cell.setHour(time.toString());
+                    cell.setStatus(slotInfo.getStatusString());
+                    cell.setActivity(slotInfo.activityName());
+
+                    cells.add(cell);
+                }
+            }
+
+            // Ordenar celdas por hora
+            cells.sort(Comparator.comparing(AgendaCellViewModel::getHour));
+            day.setCells(cells); // Usar el nuevo método setCells
+
+            // Añadir a la semana correspondiente
+            if (!diasPorSemana.containsKey(weekOfMonth)) {
+                diasPorSemana.put(weekOfMonth, new ArrayList<>());
+            }
+            diasPorSemana.get(weekOfMonth).add(day);
+        }
+
+        // Convertir mapa a lista de semanas
+        for (int weekNumber : diasPorSemana.keySet()) {
+            WeekViewModel week = new WeekViewModel();
+            week.setWeekNumber(weekNumber); // Añadir esta propiedad a WeekViewModel
+
+            // Ordenar días por día de la semana
+            List<DayViewModel> days = diasPorSemana.get(weekNumber);
+            days.sort(Comparator.comparing(DayViewModel::getDayOfWeek));
+
+            week.setDays(days);
+            weeks.add(week);
+        }
+
+        // Ordenar semanas por número
+        weeks.sort(Comparator.comparing(WeekViewModel::getWeekNumber)); // Añadir este método a WeekViewModel
+
+        return weeks;
+    }
+
+    /**
+     * Genera la lista de días de la semana según el idioma de salida
+     */
+    private List<String> generarDiasSemana(String language) {
+        if ("ESP".equalsIgnoreCase(language)) {
+            return Arrays.asList("L", "M", "X", "J", "V", "S", "D");
+        } else if ("ENG".equalsIgnoreCase(language)) {
+            return Arrays.asList("M", "T", "W", "T", "F", "S", "S");
+        } else {
+            // Idioma por defecto
+            return Arrays.asList("L", "M", "X", "J", "V", "S", "D");
         }
     }
+
+    /**
+     * Genera la lista de horas para mostrar en la agenda
+     */
+    private List<String> generarHoras() {
+        List<String> horas = new ArrayList<>();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:00");
+
+        for (int i = 8; i <= 20; i++) {
+            LocalTime hora = LocalTime.of(i, 0);
+            horas.add(hora.format(formatter));
+        }
+
+        return horas;
+    }
+
+    /**
+     * Devuelve el nombre del mes según el idioma proporcionado.
+     */
+    private String obtenerNombreMes(int month, String language) {
+        String[] mesesESP = { "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre",
+                "Octubre", "Noviembre", "Diciembre" };
+        String[] mesesENG = { "January", "February", "March", "April", "May", "June", "July", "August", "September",
+                "October", "November", "December" };
+        if ("ENG".equalsIgnoreCase(language)) {
+            return mesesENG[month - 1];
+        } else {
+            return mesesESP[month - 1];
+        }
+    }
+
 }

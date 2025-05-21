@@ -29,9 +29,7 @@ public class DataService {
 
         if (configFile == null || configFile.isEmpty()) {
             logger.error("El archivo de configuración está vacío o es nulo.");
-            // Podrías lanzar una excepción específica aquí si un config vacío no es tolerable
-            // throw new IllegalArgumentException("El archivo de configuración no puede estar vacío.");
-            return config; // O devolver un config por defecto o parcialmente vacío
+            return config;
         }
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(configFile.getInputStream(), StandardCharsets.UTF_8))) {
@@ -45,7 +43,6 @@ public class DataService {
                         config.setMonth(Integer.parseInt(parts[1]));
                     } catch (NumberFormatException e) {
                         logger.error("Error al parsear año o mes desde la línea: '{}'", yearMonthLine, e);
-                        // Considera si lanzar una excepción o manejar una configuración inválida
                     }
                 } else {
                     logger.warn("La línea de año/mes no tiene el formato esperado: '{}'", yearMonthLine);
@@ -68,8 +65,6 @@ public class DataService {
                 logger.warn("La línea de idiomas está vacía o ausente en el archivo de configuración.");
             }
         }
-        // Podrías añadir una validación final aquí para asegurar que config tiene datos esenciales
-        // if (config.getYear() == 0 || config.getMonth() == 0) { /* lanzar excepción o loguear error crítico */ }
         return config;
     }
 
@@ -115,7 +110,6 @@ public class DataService {
                         // Validación básica de fechas (más validaciones en AgendaService)
                         if (request.getStartDate() != null && request.getEndDate() != null && request.getEndDate().before(request.getStartDate())) {
                             logger.warn("Petición inválida en línea {}: la fecha de fin es anterior a la fecha de inicio. Línea: '{}'", lineNumber, line);
-                            // Decidir si añadirla a una lista de 'con errores' o simplemente no añadirla y reportarla como incidencia después
                             continue; // Saltar esta petición
                         }
 

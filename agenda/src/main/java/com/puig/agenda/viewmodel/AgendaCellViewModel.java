@@ -1,24 +1,33 @@
 package com.puig.agenda.viewmodel;
 
 public class AgendaCellViewModel {
-    private String textToShow;
-    private String cssClass;
+    private String hour;
+    private String status;
+    private String activity;
 
     public AgendaCellViewModel() {}
 
-    public String getTextToShow() {
-        return textToShow;
+    public String getHour() {
+        return hour;
     }
 
-    public void setTextToShow(String textToShow) {
-        this.textToShow = textToShow;
+    public void setHour(String hour) {
+        this.hour = hour;
     }
 
-    public String getCssClass() {
-        return cssClass;
+    public String getStatus() {
+        return status;
     }
 
-    public void setCssClass(String cssClass) {
-        this.cssClass = cssClass;
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getActivity() {
+        return activity;
+    }
+
+    public void setActivity(String activity) {
+        this.activity = activity;
     }
 }

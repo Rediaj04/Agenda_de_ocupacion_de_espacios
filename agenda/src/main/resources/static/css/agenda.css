@@ -78,3 +78,17 @@ body {
 .agenda-table th {
     background-color: #f8f9fa;
 }
+
+/* Estados de las celdas */
+.libre {
+    background-color: #e6ffe6; /* Verde claro */
+}
+
+.ocupado {
+    background-color: #ffe6e6; /* Rojo claro */
+}
+
+.bloqueado {
+    background-color: #e6e6e6; /* Gris claro */
+    text-decoration: line-through;
+}

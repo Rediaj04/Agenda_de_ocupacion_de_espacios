@@ -3,15 +3,24 @@ package com.puig.agenda.viewmodel;
 import java.util.List;
 
 public class WeekViewModel {
-    private List<DayViewoModel> days;
+    private int weekNumber;
+    private List<DayViewModel> days;
 
     public WeekViewModel() {};
 
-    public List<DayViewoModel> getDays() {
+    public int getWeekNumber() {
+        return weekNumber;
+    }
+
+    public void setWeekNumber(int weekNumber) {
+        this.weekNumber = weekNumber;
+    }
+
+    public List<DayViewModel> getDays() {
         return days;
     }
 
-    public void setDays(List<DayViewoModel> days) {
+    public void setDays(List<DayViewModel> days) {
         this.days = days;
     }
 }
