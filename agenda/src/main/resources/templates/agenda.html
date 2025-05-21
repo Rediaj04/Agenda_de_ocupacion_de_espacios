@@ -38,11 +38,11 @@
                         <thead>
                             <tr>
                                 <th>Hora</th>
-                                <th th:each="dia : ${diasSemana}" th:text="${dia}"></th>
+                                <th class="agenda-day" th:each="dia : ${diasSemana}" th:text="${dia}"></th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr th:each="hora : ${horas}">
+                            <tr class="agenda-hour" th:each="hora : ${horas}">
                                 <td th:text="${hora}"></td>
                                 <!-- Para cada día, buscamos la celda correspondiente a esta hora -->
                                 <td th:each="dia, diaStat : ${diasSemana}">
@@ -70,7 +70,7 @@
             </div>
         </div>
     </div>
-
+<!-- Conflicto en un div diferente, las dos salas en negrita + fondo a la sala seleccionada, dias y horas en negro -->
     <script src="js/agenda.js"></script>
 </body>
 </html>
