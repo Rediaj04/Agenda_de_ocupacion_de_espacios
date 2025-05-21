@@ -33,11 +33,11 @@
                         <thead>
                             <tr>
                                 <th>Hora</th>
-                                <th th:each="dia : ${diasSemana}" th:text="${dia}"></th>
+                                <th class="agenda-day" th:each="dia : ${diasSemana}" th:text="${dia}"></th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr th:each="hora : ${horas}">
+                            <tr class="agenda-hour" th:each="hora : ${horas}">
                                 <td th:text="${hora}"></td>
                                 <td th:each="dia : ${diasSemana}"
                                     th:class="${sala.getEstado(dia, hora)}"
@@ -50,16 +50,15 @@
 
                 <!-- Sección de incidencias por sala -->
                 <div class="agenda-incidencias" th:if="${not #lists.isEmpty(sala.incidencias)}">
-                    <h3 class="agenda-incidencias-title">Incidencias Detectadas</h3>
                     <div class="agenda-incidencia" th:each="incidencia : ${sala.incidencias}">
-                        <strong th:text="${incidencia.tipo}"></strong>
-                        <p th:text="${incidencia.descripcion}"></p>
+                        <strong class="tipo-incidencia" th:text="${incidencia.tipo}"></strong>
+                        <p class="descripcion-incidencia" th:text="${incidencia.descripcion}"></p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
+<!-- Conflicto en un div diferente, las dos salas en negrita + fondo a la sala seleccionada, dias y horas en negro -->
     <script src="js/agenda.js"></script>
 </body>
 </html>

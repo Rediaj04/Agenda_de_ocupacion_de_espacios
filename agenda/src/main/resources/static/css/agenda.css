@@ -3,8 +3,8 @@ body {
     font-family: Arial, sans-serif;
     display: flex;
     justify-content: center; /* Centra horizontalmente */
-    align-items: center; /* Centra verticalmente */
-    min-height: 100vh; /* Asegura que ocupe toda la pantalla */
+    align-items: center;     /* Centra verticalmente */
+    min-height: 100vh;       /* Asegura que ocupe toda la pantalla */
     margin: 0;
     padding: 0;
     background-color: #f8f9fa;
@@ -20,13 +20,13 @@ body {
     box-shadow: 0 0 15px rgba(0,0,0,0.1);
 }
 
-
 /* Título */
 .agenda-title {
     text-align: center;
     font-size: 22px;
     font-weight: bold;
     margin-bottom: 20px;
+    color: cornflowerblue;
 }
 
 /* Navegación entre salas */
@@ -39,42 +39,72 @@ body {
     padding: 10px 15px;
     margin: 5px;
     background: none;
-    color: #007bff;
-    border: 1px solid #007bff;
     border-radius: 5px;
     cursor: pointer;
     transition: 0.3s;
-    font-weight: normal; /* Normal para todas */
+    font-weight: normal;
+    color: cornflowerblue;
+    font-weight: bold;
+
 }
 
 .agenda-btn:hover {
-    background: #007bff;
-    color: white;
+    background-color: lavender;
+    color: cornflowerblue;
 }
 
 .agenda-btn.active {
-    font-weight: bold; /* Negrita para la sala activa */
-    border-color: #0056b3; /* Opcional: cambia el borde */
-    color: #0056b3; /* Opcional: cambia el color */
+    font-weight: bold;
+    background-color: lavender;
+
 }
 
-/* Tablas */
+/* Tabla de horarios */
 .agenda-table-wrapper {
     margin-top: 20px;
-    overflow-x: auto;
+    max-height: 290px;     /* Muestra aproximadamente 5 filas */
+    overflow-y: auto;      /* Scroll vertical */
+    display: block;
 }
 
+/* Asegura que la tabla mantenga su ancho */
 .agenda-table {
     width: 100%;
     border-collapse: collapse;
     text-align: center;
 }
 
+/* Encabezado fijo al hacer scroll */
+.agenda-table thead th {
+    position: sticky;
+    top: 0;
+    background-color: #f8f9fa;
+    z-index: 1;
+}
+
+/* Celdas de la tabla */
 .agenda-table th, .agenda-table td {
     border: 1px solid #dee2e6;
     padding: 10px;
 }
 
-.agenda-table th {
-    background-color: #f8f9fa;
+/* Estilo para los días y horas */
+.agenda-day {
+    color: darkred;
+}
+
+.agenda-hour {
+    color: indigo;
+    height: 50px; /* Altura para controlar cuántas filas se muestran */
+}
+
+/* Incidencias */
+.tipo-incidencia {
+    color: red;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.descripcion-incidencia {
+    font-weight: bold;
 }
