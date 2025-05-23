@@ -17,9 +17,9 @@ import java.util.*;
  * Servicio para procesar agendas de ocupación de espacios
  */
 @Service
-public class AgendaService {
+public class AgendaProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(AgendaService.class);
+    private static final Logger logger = LoggerFactory.getLogger(AgendaProcessor.class);
     private static final String TANCAT = "Tancat";
 
     // Enumeración para manejar estados de slots

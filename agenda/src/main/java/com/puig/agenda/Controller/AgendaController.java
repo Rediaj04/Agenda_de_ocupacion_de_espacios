@@ -20,10 +20,10 @@ import org.springframework.web.multipart.MultipartFile;
 import com.puig.agenda.model.AgendaConfiguration;
 import com.puig.agenda.model.Incidence;
 import com.puig.agenda.model.Request;
-import com.puig.agenda.service.AgendaService;
-import com.puig.agenda.service.AgendaService.AgendaProcessingResult;
-import com.puig.agenda.service.AgendaService.SlotInfo;
-import com.puig.agenda.service.DataService;
+import com.puig.agenda.service.AgendaProcessor;
+import com.puig.agenda.service.AgendaProcessor.AgendaProcessingResult;
+import com.puig.agenda.service.AgendaProcessor.SlotInfo;
+import com.puig.agenda.service.DataLoader;
 import com.puig.agenda.viewmodel.*;
 
 @Controller
@@ -46,10 +46,10 @@ public class AgendaController {
             "CAT", Arrays.asList("DL", "DT", "DC", "DJ", "DV", "DS", "DG"));
 
     @Autowired
-    private AgendaService agendaService;
+    private AgendaProcessor agendaService;
 
     @Autowired
-    private DataService dataService;
+    private DataLoader dataService;
 
     @GetMapping("/")
     public String mostrarFormulario() {

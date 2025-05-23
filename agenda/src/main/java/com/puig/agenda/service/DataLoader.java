@@ -19,9 +19,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class DataService {
+public class DataLoader {
 
-    private static final Logger logger = LoggerFactory.getLogger(DataService.class);
+    private static final Logger logger = LoggerFactory.getLogger(DataLoader.class);
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");    public AgendaConfiguration parseConfigFile(MultipartFile configFile) throws IOException {
         AgendaConfiguration config = new AgendaConfiguration();
 
