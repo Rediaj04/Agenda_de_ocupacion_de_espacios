@@ -3,8 +3,12 @@ package com.puig.agenda.Controller;
 import java.util.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.util.stream.IntStream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,23 +17,39 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.puig.agenda.model.Configuration;
+import com.puig.agenda.model.AgendaConfiguration;
 import com.puig.agenda.model.Incidence;
 import com.puig.agenda.model.Request;
-import com.puig.agenda.service.AgendaService;
-import com.puig.agenda.service.AgendaService.AgendaProcessingResult;
-import com.puig.agenda.service.AgendaService.SlotInfo;
-import com.puig.agenda.service.DataService;
+import com.puig.agenda.service.AgendaProcessor;
+import com.puig.agenda.service.AgendaProcessor.AgendaProcessingResult;
+import com.puig.agenda.service.AgendaProcessor.SlotInfo;
+import com.puig.agenda.service.DataLoader;
 import com.puig.agenda.viewmodel.*;
 
 @Controller
 public class AgendaController {
 
-    @Autowired
-    private AgendaService agendaService;
+    private static final Logger logger = LoggerFactory.getLogger(AgendaController.class);
+
+    // Mapeo de idiomas a nombres de meses y días
+    private static final Map<String, String[]> MONTH_NAMES = Map.of(
+            "ESP", new String[] { "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto",
+                    "Septiembre", "Octubre", "Noviembre", "Diciembre" },
+            "ENG", new String[] { "January", "February", "March", "April", "May", "June", "July", "August",
+                    "September", "October", "November", "December" },
+            "CAT", new String[] { "Gener", "Febrer", "Març", "Abril", "Maig", "Juny", "Juliol", "Agost",
+                    "Setembre", "Octubre", "Novembre", "Desembre" });
+
+    private static final Map<String, List<String>> WEEK_DAYS = Map.of(
+            "ESP", Arrays.asList("L", "M", "X", "J", "V", "S", "D"),
+            "ENG", Arrays.asList("M", "T", "W", "R", "F", "S", "U"),
+            "CAT", Arrays.asList("DL", "DT", "DC", "DJ", "DV", "DS", "DG"));
 
     @Autowired
-    private DataService dataService;
+    private AgendaProcessor agendaService;
+
+    @Autowired
+    private DataLoader dataService;
 
     @GetMapping("/")
     public String mostrarFormulario() {
@@ -41,40 +61,27 @@ public class AgendaController {
             @RequestParam("peticionesFile") MultipartFile peticionesFile,
             Model model) {
         try {
-            // Parsear archivos de configuración y peticiones
-            Configuration config = dataService.parseConfigFile(configFile);
+            // Procesar archivos y generar agenda
+            AgendaConfiguration config = dataService.parseConfigFile(configFile);
             List<Request> requests = dataService.parseRequestsFile(peticionesFile);
-
-            // Procesar la agenda
             AgendaProcessingResult result = agendaService.processAgenda(config, requests);
 
-            // Convertir el resultado a ViewModel para la vista
+            // Convertir resultados al formato de vista
             AgendaViewModel viewModel = convertirAViewModel(config, result);
 
-            // Añadir al modelo para la vista
+            // Preparar el modelo para la vista
             model.addAttribute("agenda", viewModel);
             model.addAttribute("salas", viewModel.getRooms());
-
-            // Generar días de la semana según idioma de salida
-            List<String> diasSemana = generarDiasSemana(config.getExitLanguage());
-            model.addAttribute("diasSemana", diasSemana);
-
-            // Generar horas del día
-            List<String> horas = generarHoras();
-            model.addAttribute("horas", horas);
+            model.addAttribute("diasSemana", generarDiasSemana(config.getExitLanguage()));
+            model.addAttribute("horas", generarHoras());
 
             return "agenda";
         } catch (Exception e) {
-            // Imprimir el stack trace completo a la consola de errores estándar
-            System.err.println("Se ha producido una excepción durante el procesamiento de archivos:");
-            e.printStackTrace(System.err); // <<--- AÑADE O CAMBIA A ESTA LÍNEA
+            logger.error("Error al procesar los archivos", e);
 
-            // También puedes mantener tu logger si lo tienes configurado
-            // logger.error("Error crítico en procesarArchivos", e);
+            String mensaje = e.getMessage() != null ? e.getMessage() : "Excepción de tipo " + e.getClass().getName();
 
-            model.addAttribute("error", "Error al procesar los archivos: " +
-                    (e.getMessage() == null ? "Excepción de tipo " + e.getClass().getName() + " (sin mensaje detallado)"
-                            : e.getMessage()));
+            model.addAttribute("error", "Error al procesar los archivos: " + mensaje);
             return "error";
         }
     }
@@ -82,43 +89,34 @@ public class AgendaController {
     /**
      * Convierte el resultado del proceso de la agenda en un ViewModel para la vista
      */
-    private AgendaViewModel convertirAViewModel(Configuration config, AgendaProcessingResult result) {
+    private AgendaViewModel convertirAViewModel(AgendaConfiguration config, AgendaProcessingResult result) {
         AgendaViewModel viewModel = new AgendaViewModel();
 
-        // Establecer año y mes
+        // Configurar datos básicos
         viewModel.setYear(config.getYear());
         viewModel.setNameMonth(obtenerNombreMes(config.getMonth(), config.getExitLanguage()));
 
-        // Convertir salas
+        // Procesar salas
         List<RoomViewModel> roomViewModels = new ArrayList<>();
-
-        // Obtener todos los slots e incidencias
-        Map<String, Map<LocalDate, Map<LocalTime, SlotInfo>>> schedule = result.finalSchedule();
-        List<Incidence> incidences = result.incidences();
-
-        // Procesar cada sala
-        for (String roomName : schedule.keySet()) {
+        for (String roomName : result.finalSchedule().keySet()) {
             RoomViewModel roomVM = new RoomViewModel();
             roomVM.setRoomName(roomName);
 
             // Organizar por semanas
-            Map<LocalDate, Map<LocalTime, SlotInfo>> roomSchedule = schedule.get(roomName);
-            List<WeekViewModel> weeks = organizarPorSemanas(roomSchedule, config.getMonth(), config.getYear());
-            roomVM.setWeekMonth(weeks);
+            Map<LocalDate, Map<LocalTime, SlotInfo>> roomSchedule = result.finalSchedule().get(roomName);
+            roomVM.setWeekMonth(organizarPorSemanas(roomSchedule, config.getMonth(), config.getYear()));
 
             roomViewModels.add(roomVM);
         }
-
         viewModel.setRooms(roomViewModels);
 
         // Convertir incidencias
         List<IncidenceViewModel> incidenceViewModels = new ArrayList<>();
-        for (Incidence incidence : incidences) {
+        for (Incidence incidence : result.incidences()) {
             IncidenceViewModel incVM = new IncidenceViewModel();
             incVM.setDescription(incidence.getReason());
             incidenceViewModels.add(incVM);
         }
-
         viewModel.setIncidences(incidenceViewModels);
 
         return viewModel;
@@ -129,127 +127,110 @@ public class AgendaController {
      */
     private List<WeekViewModel> organizarPorSemanas(Map<LocalDate, Map<LocalTime, SlotInfo>> roomSchedule,
             int month, int year) {
-        List<WeekViewModel> weeks = new ArrayList<>();
-
-        // Obtener todas las fechas para el mes y año configurados
-        List<LocalDate> fechasDelMes = new ArrayList<>();
-        for (LocalDate date : roomSchedule.keySet()) {
-            if (date.getMonthValue() == month && date.getYear() == year) {
-                fechasDelMes.add(date);
-            }
-        }
-
-        // Ordenar fechas
-        Collections.sort(fechasDelMes);
-
-        // Agrupar por semanas
+        // Crear un mapa para agrupar por semana
         Map<Integer, List<DayViewModel>> diasPorSemana = new HashMap<>();
 
-        for (LocalDate date : fechasDelMes) {
-            // Calcular número de semana dentro del mes
-            int weekOfMonth = (date.getDayOfMonth() - 1) / 7 + 1;
+        // Generar todas las fechas del mes
+        YearMonth yearMonth = YearMonth.of(year, month);
+        LocalDate inicioMes = yearMonth.atDay(1);
+        LocalDate finMes = yearMonth.atEndOfMonth();
 
-            // Crear objeto día
-            DayViewModel day = new DayViewModel();
-            day.setNumeroDelMes(date.getDayOfMonth());
-            day.setDayOfWeek(date.getDayOfWeek().getValue()); // Guardar el día de la semana
-            day.setNombreDiaSemana(date.getDayOfWeek().toString()); // Opcional: nombre del día
+        // Calcular el primer lunes para referencia de las semanas
+        LocalDate primerLunes = inicioMes;
+        if (inicioMes.getDayOfWeek().getValue() > 1) {
+            primerLunes = inicioMes.minusDays(inicioMes.getDayOfWeek().getValue() - 1);
+        }
 
-            // Añadir slots del día
-            List<AgendaCellViewModel> cells = new ArrayList<>();
-            Map<LocalTime, SlotInfo> daySlots = roomSchedule.get(date);
+        // Procesar cada día del mes
+        for (LocalDate fecha = inicioMes; !fecha.isAfter(finMes); fecha = fecha.plusDays(1)) {
+            // Añadir fecha al mapa si no existe
+            roomSchedule.putIfAbsent(fecha, new HashMap<>());
 
-            if (daySlots != null) {
-                for (LocalTime time : daySlots.keySet()) {
-                    SlotInfo slotInfo = daySlots.get(time);
+            // Calcular semana
+            int diasDesdePrimerLunes = (int) (primerLunes.until(fecha, java.time.temporal.ChronoUnit.DAYS));
+            int semana = (diasDesdePrimerLunes / 7) + 1;
 
-                    AgendaCellViewModel cell = new AgendaCellViewModel();
-                    cell.setHour(time.toString());
-                    cell.setStatus(slotInfo.getStatusString());
-                    cell.setActivity(slotInfo.activityName());
-
-                    cells.add(cell);
-                }
-            }
-
-            // Ordenar celdas por hora
-            cells.sort(Comparator.comparing(AgendaCellViewModel::getHour));
-            day.setCells(cells); // Usar el nuevo método setCells
+            // Crear el objeto de día con sus slots
+            DayViewModel dia = crearDiaViewModel(fecha, roomSchedule.get(fecha));
 
             // Añadir a la semana correspondiente
-            if (!diasPorSemana.containsKey(weekOfMonth)) {
-                diasPorSemana.put(weekOfMonth, new ArrayList<>());
-            }
-            diasPorSemana.get(weekOfMonth).add(day);
+            diasPorSemana.computeIfAbsent(semana, k -> new ArrayList<>()).add(dia);
         }
 
-        // Convertir mapa a lista de semanas
-        for (int weekNumber : diasPorSemana.keySet()) {
-            WeekViewModel week = new WeekViewModel();
-            week.setWeekNumber(weekNumber); // Añadir esta propiedad a WeekViewModel
+        // Convertir el mapa a una lista ordenada de semanas
+        return diasPorSemana.entrySet().stream()
+                .map(entry -> {
+                    WeekViewModel semana = new WeekViewModel();
+                    semana.setWeekNumber(entry.getKey());
 
-            // Ordenar días por día de la semana
-            List<DayViewModel> days = diasPorSemana.get(weekNumber);
-            days.sort(Comparator.comparing(DayViewModel::getDayOfWeek));
+                    // Ordenar días por día de la semana
+                    List<DayViewModel> dias = entry.getValue();
+                    dias.sort(Comparator.comparing(DayViewModel::getDayOfWeek));
+                    semana.setDays(dias);
 
-            week.setDays(days);
-            weeks.add(week);
-        }
+                    return semana;
+                })
+                .sorted(Comparator.comparing(WeekViewModel::getWeekNumber))
+                .toList();
+    }
 
-        // Ordenar semanas por número
-        weeks.sort(Comparator.comparing(WeekViewModel::getWeekNumber)); // Añadir este método a WeekViewModel
+    /**
+     * Crea el objeto ViewModel para un día específico
+     */
+    private DayViewModel crearDiaViewModel(LocalDate fecha, Map<LocalTime, SlotInfo> daySlots) {
+        DayViewModel dia = new DayViewModel();
+        dia.setNumeroDelMes(fecha.getDayOfMonth());
+        dia.setDayOfWeek(fecha.getDayOfWeek().getValue());
+        dia.setNombreDiaSemana(fecha.getDayOfWeek().toString());
 
-        return weeks;
+        // Procesar celdas de horas
+        List<AgendaCellViewModel> celdas = daySlots.entrySet().stream()
+                .map(entry -> {
+                    LocalTime hora = entry.getKey();
+                    SlotInfo infoSlot = entry.getValue();
+
+                    AgendaCellViewModel celda = new AgendaCellViewModel();
+                    celda.setHour(hora.toString());
+                    celda.setStatus(infoSlot.getStatusString().toLowerCase());
+
+                    // Manejar caso especial de "Tancat"
+                    boolean esTancat = "BLOQUEADO".equalsIgnoreCase(infoSlot.getStatusString()) &&
+                            "Tancat".equals(infoSlot.activityName());
+
+                    celda.setActivity(esTancat ? null : infoSlot.activityName());
+
+                    return celda;
+                })
+                .sorted(Comparator.comparing(AgendaCellViewModel::getHour))
+                .toList();
+
+        dia.setCells(celdas);
+        return dia;
     }
 
     /**
      * Genera la lista de días de la semana según el idioma de salida
      */
     private List<String> generarDiasSemana(String language) {
-        if ("ESP".equalsIgnoreCase(language)) {
-            return Arrays.asList("L", "M", "X", "J", "V", "S", "D");
-        } else if ("ENG".equalsIgnoreCase(language)) {
-            return Arrays.asList("M", "T", "W", "T", "F", "S", "S");
-        } else if ("CAT".equalsIgnoreCase(language)) {
-            return Arrays.asList("DL", "DT", "DC", "DJ", "DV", "DS", "DG");
-        } else {
-            // Idioma por defecto
-            return Arrays.asList("L", "M", "X", "J", "V", "S", "D");
-        }
+        return WEEK_DAYS.getOrDefault(language.toUpperCase(), WEEK_DAYS.get("ESP"));
     }
 
     /**
      * Genera la lista de horas para mostrar en la agenda
      */
     private List<String> generarHoras() {
-        List<String> horas = new ArrayList<>();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:00");
 
-        for (int i = 8; i <= 20; i++) {
-            LocalTime hora = LocalTime.of(i, 0);
-            horas.add(hora.format(formatter));
-        }
-
-        return horas;
+        return IntStream.rangeClosed(0, 23)
+                .mapToObj(i -> LocalTime.of(i, 0).format(formatter))
+                .toList();
     }
 
     /**
-     * Devuelve el nombre del mes según el idioma proporcionado.
+     * Devuelve el nombre del mes según el idioma proporcionado
      */
     private String obtenerNombreMes(int month, String language) {
-        String[] mesesESP = { "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre",
-                "Octubre", "Noviembre", "Diciembre" };
-        String[] mesesENG = { "January", "February", "March", "April", "May", "June", "July", "August", "September",
-                "October", "November", "December" };
-        String[] mesesCAT = { "Gener", "Febrer", "Març", "Abril", "Maig", "Juny", "Juliol", "Agost", "Setembre",
-                "Octubre", "Novembre", "Desembre" };
-        if ("ENG".equalsIgnoreCase(language)) {
-            return mesesENG[month - 1];
-        } else if ("CAT".equalsIgnoreCase(language)) {
-            return mesesCAT[month - 1];
-        } else {
-            return mesesESP[month - 1]; // Español por defecto
-        }
+        String[] meses = MONTH_NAMES.getOrDefault(language.toUpperCase(), MONTH_NAMES.get("ESP"));
+        return meses[month - 1];
     }
-
 }

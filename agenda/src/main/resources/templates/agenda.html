@@ -1,33 +1,32 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agenda de Espacios</title>
     <link href="css/agenda.css" rel="stylesheet">
 </head>
+
 <body>
     <div class="agenda-container">
         <h2 class="agenda-title">
-            Agenda de Ocupación de Espacios - 
-            <span th:text="${agenda.nameMonth}"></span> 
+            Agenda de Ocupación de Espacios -
+            <span th:text="${agenda.nameMonth}"></span>
             <span th:text="${agenda.year}"></span>
         </h2>
 
         <!-- Botones para cambiar de sala -->
         <div class="agenda-nav">
-            <button class="agenda-btn" th:each="sala : ${salas}" 
-                    th:data-id="'sala-' + ${sala.roomName}"
-                    th:text="${sala.roomName}">
+            <button class="agenda-btn" th:each="sala : ${salas}" th:data-id="'sala-' + ${sala.roomName}"
+                th:text="${sala.roomName}">
             </button>
         </div>
 
         <!-- Contenido de cada sala (solo una se muestra a la vez) -->
         <div class="agenda-content">
-            <div th:each="sala : ${salas}" 
-                 class="agenda-sala"
-                 th:id="'sala-' + ${sala.roomName}"
-                 th:style="${salaStat.first} ? 'display: block;' : 'display: none;'">
+            <div th:each="sala : ${salas}" class="agenda-sala" th:id="'sala-' + ${sala.roomName}"
+                th:style="${salaStat.first} ? 'display: block;' : 'display: none;'">
 
                 <h3 th:text="${sala.roomName}" class="agenda-sala-title"></h3>
 
@@ -38,7 +37,14 @@
                         <thead>
                             <tr>
                                 <th>Hora</th>
-                                <th class="agenda-day" th:each="dia : ${diasSemana}" th:text="${dia}"></th>
+                                <th class="agenda-day" th:each="dia, diaStat : ${diasSemana}">
+                                    <div th:text="${dia}"></div>
+                                    <!-- Buscar el día correspondiente en la semana actual para mostrar su número -->
+                                    <div class="day-number" th:each="diaModel : ${semana.days}"
+                                        th:if="${diaModel.dayOfWeek == diaStat.index + 1}"
+                                        th:text="${diaModel.numeroDelMes}">
+                                    </div>
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -46,12 +52,11 @@
                                 <td th:text="${hora}"></td>
                                 <!-- Para cada día, buscamos la celda correspondiente a esta hora -->
                                 <td th:each="dia, diaStat : ${diasSemana}">
-                                    <div th:each="diaModel : ${semana.days}" 
-                                         th:if="${diaModel.dayOfWeek == diaStat.count}">
-                                        <div th:each="celda : ${diaModel.cells}" 
-                                             th:if="${celda.hour == hora}"
-                                             th:class="${celda.status.toLowerCase()}"
-                                             th:text="${celda.activity}">
+                                    <div th:each="diaModel : ${semana.days}"
+                                        th:if="${diaModel.dayOfWeek == diaStat.index + 1}">
+                                        <div th:each="celda : ${diaModel.cells}" th:if="${celda.hour == hora}"
+                                            th:class="${celda.status}"
+                                            th:text="${celda.status.toLowerCase() == 'bloqueado' ? 'Cerrado' : (celda.activity != null && !celda.activity.isEmpty() ? celda.activity : '')}">
                                         </div>
                                     </div>
                                 </td>
@@ -72,4 +77,5 @@
     </div>
     <script src="js/agenda.js"></script>
 </body>
+
 </html>

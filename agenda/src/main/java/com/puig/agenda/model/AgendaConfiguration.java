@@ -1,12 +1,12 @@
 package com.puig.agenda.model;
 
-public class Configuration {
+public class AgendaConfiguration {
     private int year;
     private int month;
     private String entryLanguage;
     private String exitLanguage;
 
-    public Configuration() {};
+    public AgendaConfiguration() {};
 
     public int getYear() {
         return year;
