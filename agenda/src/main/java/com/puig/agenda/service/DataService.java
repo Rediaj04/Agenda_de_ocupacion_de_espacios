@@ -1,8 +1,8 @@
 package com.puig.agenda.service;
 
-import com.puig.agenda.model.Configuration;
+import com.puig.agenda.model.AgendaConfiguration;
 import com.puig.agenda.model.Request;
-import com.puig.agenda.model.Room; // Asumiendo que Room está en el mismo paquete de modelos
+import com.puig.agenda.model.Room;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -22,10 +22,8 @@ import java.util.List;
 public class DataService {
 
     private static final Logger logger = LoggerFactory.getLogger(DataService.class);
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-
-    public Configuration parseConfigFile(MultipartFile configFile) throws IOException {
-        Configuration config = new Configuration();
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");    public AgendaConfiguration parseConfigFile(MultipartFile configFile) throws IOException {
+        AgendaConfiguration config = new AgendaConfiguration();
 
         if (configFile == null || configFile.isEmpty()) {
             logger.error("El archivo de configuración está vacío o es nulo.");
