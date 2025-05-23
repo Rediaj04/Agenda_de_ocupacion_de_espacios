@@ -12,8 +12,8 @@ body {
 
 /* Contenedor principal */
 .agenda-container {
-    max-width: 800px;
-    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
     padding: 20px;
     background: #ffffff;
     border-radius: 10px;
@@ -59,19 +59,131 @@ body {
 
 }
 
+/* Leyenda de colores */
+.agenda-leyenda {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.leyenda-items {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.leyenda-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.leyenda-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+}
+
+.leyenda-color.available {
+    background-color: #28a745;
+}
+
+.leyenda-color.occupied {
+    background-color: #dc3545;
+}
+
+.leyenda-color.blocked {
+    background-color: #6c757d;
+}
+
+/* Filtros */
+.agenda-filtros {
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+/* Sección de incidencias mejorada */
+.agenda-incidencias {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+.incidencias-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.incidencia-item {
+    background-color: white;
+    padding: 15px;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.incidencia-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.incidencia-tipo {
+    font-weight: bold;
+    color: #dc3545;
+}
+
+.incidencia-fecha {
+    color: #6c757d;
+}
+
+.incidencia-descripcion {
+    margin: 0;
+    color: #212529;
+}
+
+.incidencia-detalles {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #dee2e6;
+    color: #6c757d;
+}
+
+/* Botón volver */
+.agenda-actions {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.btn-volver {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.btn-volver:hover {
+    background-color: #0056b3;
+}
+
 /* Tabla de horarios */
 .agenda-table-wrapper {
-    margin-top: 20px;
-    max-height: 290px;     /* Muestra aproximadamente 5 filas */
-    overflow-y: auto;      /* Scroll vertical */
-    display: block;
+    margin-bottom: 30px;
+    overflow-x: auto;
 }
 
 /* Asegura que la tabla mantenga su ancho */
 .agenda-table {
     width: 100%;
     border-collapse: collapse;
-    text-align: center;
+    margin-bottom: 1rem;
 }
 
 /* Encabezado fijo al hacer scroll */
@@ -84,8 +196,8 @@ body {
 
 /* Celdas de la tabla */
 .agenda-table th, .agenda-table td {
+    padding: 8px;
     border: 1px solid #dee2e6;
-    padding: 10px;
 }
 
 /* Estilo para los días y horas */
@@ -110,15 +222,17 @@ body {
 }
 
 /* Estados de las celdas */
-.libre {
-    background-color: #e6ffe6; /* Verde claro */
+.available {
+    background-color: #28a745;
+    color: white;
 }
 
-.ocupado {
-    background-color: #ffe6e6; /* Rojo claro */
+.occupied {
+    background-color: #dc3545;
+    color: white;
 }
 
-.bloqueado {
-    background-color: #e6e6e6; /* Gris claro */
-    text-decoration: line-through;
+.blocked {
+    background-color: #6c757d;
+    color: white;
 }

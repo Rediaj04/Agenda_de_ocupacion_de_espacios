@@ -14,6 +14,31 @@
             <span th:text="${agenda.year}"></span>
         </h2>
 
+        <!-- Leyenda de colores -->
+        <div class="agenda-leyenda">
+            <h3>Leyenda</h3>
+            <div class="leyenda-items">
+                <div class="leyenda-item">
+                    <div class="leyenda-color available"></div>
+                    <span>Disponible</span>
+                </div>
+                <div class="leyenda-item">
+                    <div class="leyenda-color occupied"></div>
+                    <span>Ocupado</span>
+                </div>
+                <div class="leyenda-item">
+                    <div class="leyenda-color blocked"></div>
+                    <span>Bloqueado</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtro de semanas -->
+        <div class="agenda-filtros">
+            <label for="filtroSemanas">Mostrar solo semanas con ocupación:</label>
+            <input type="checkbox" id="filtroSemanas" onchange="filtrarSemanas()">
+        </div>
+
         <!-- Botones para cambiar de sala -->
         <div class="agenda-nav">
             <button class="agenda-btn" th:each="sala : ${salas}" 
@@ -44,7 +69,6 @@
                         <tbody>
                             <tr class="agenda-hour" th:each="hora : ${horas}">
                                 <td th:text="${hora}"></td>
-                                <!-- Para cada día, buscamos la celda correspondiente a esta hora -->
                                 <td th:each="dia, diaStat : ${diasSemana}">
                                     <div th:each="diaModel : ${semana.days}" 
                                          th:if="${diaModel.dayOfWeek == diaStat.count}">
@@ -62,12 +86,26 @@
             </div>
         </div>
 
-        <!-- Sección de incidencias global -->
+        <!-- Sección de incidencias mejorada -->
         <div class="agenda-incidencias" th:if="${not #lists.isEmpty(agenda.incidences)}">
             <h3 class="agenda-incidencias-title">Incidencias Detectadas</h3>
-            <div class="agenda-incidencia" th:each="incidencia : ${agenda.incidences}">
-                <p th:text="${incidencia.description}"></p>
+            <div class="incidencias-container">
+                <div class="incidencia-item" th:each="incidencia : ${agenda.incidences}">
+                    <div class="incidencia-header">
+                        <span class="incidencia-tipo" th:text="${incidencia.type}"></span>
+                        <span class="incidencia-fecha" th:text="${incidencia.date}"></span>
+                    </div>
+                    <p class="incidencia-descripcion" th:text="${incidencia.description}"></p>
+                    <div class="incidencia-detalles" th:if="${incidencia.details != null}">
+                        <p th:text="${incidencia.details}"></p>
+                    </div>
+                </div>
             </div>
+        </div>
+
+        <!-- Botón para volver -->
+        <div class="agenda-actions">
+            <a href="/upload" class="btn-volver">Volver a subir archivos</a>
         </div>
     </div>
     <script src="js/agenda.js"></script>
