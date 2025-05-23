@@ -108,6 +108,8 @@ public class AgendaController {
 
             roomViewModels.add(roomVM);
         }
+        // Ordenar las salas por nombre
+        roomViewModels.sort(Comparator.comparing(RoomViewModel::getRoomName));
         viewModel.setRooms(roomViewModels);
 
         // Convertir incidencias
