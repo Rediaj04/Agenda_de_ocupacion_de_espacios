@@ -11,11 +11,20 @@
         <div class="upload-box">
             <h2 class="upload-title">Agenda de Ocupación de Espacios</h2>
             
-            <!-- Mensajes de error -->
-            <div th:if="${error}" class="alert alert-danger" role="alert">
-                <p th:text="${error}"></p>
+            <!-- Sección de archivos de ejemplo -->
+            <div class="example-files">
+                <h3>Archivos de Ejemplo</h3>
+                <p>Descarga los archivos de ejemplo para ver el formato correcto:</p>
+                <div class="example-files-links">
+                    <a href="/ejemplos/config.txt" class="example-link" download>
+                        <i class="fas fa-download"></i> config.txt
+                    </a>
+                    <a href="/ejemplos/peticions.txt" class="example-link" download>
+                        <i class="fas fa-download"></i> peticions.txt
+                    </a>
+                </div>
             </div>
-            
+
             <form th:action="@{/procesar}" method="post" enctype="multipart/form-data" class="upload-form needs-validation" novalidate id="uploadForm">
                 <div class="upload-file-group">
                     <label for="configFile" class="upload-label">Archivo de Configuración (config.txt)</label>
@@ -24,13 +33,7 @@
                     <div class="upload-error-name" id="configError" style="display: none;">
                         El archivo debe llamarse exactamente "config.txt"
                     </div>
-                    <div class="upload-error-format" id="configFormatError" style="display: none;">
-                        El archivo debe contener dos líneas:<br>
-                        Línea 1: año y mes (ejemplo: 2008 11)<br>
-                        Línea 2: idioma de entrada y salida (ejemplo: ESP ENG)
-                    </div>
                 </div>
-                
                 <div class="upload-file-group">
                     <label for="peticionesFile" class="upload-label">Archivo de Peticiones (peticions.txt)</label>
                     <input type="file" class="upload-input form-control" id="peticionesFile" name="peticionesFile" required accept=".txt">
@@ -38,29 +41,14 @@
                     <div class="upload-error-name" id="peticionesError" style="display: none;">
                         El archivo debe llamarse exactamente "peticions.txt"
                     </div>
-                    <div class="upload-error-format" id="peticionesFormatError" style="display: none;">
-                        El archivo debe contener peticiones con el formato:<br>
-                        NombreActividad Sala FechaInicio FechaFin DíasHoras Horarios<br>
-                        Ejemplo: ReunioJava Sala1 01/11/2008 20/11/2008 LMCJVSG 08-10_19-21
-                    </div>
                 </div>
-
-                <!-- Ejemplos de archivos -->
-                <div class="upload-examples">
-                    <h3>Ejemplos de archivos</h3>
-                    <div class="example-files">
-                        <a href="/ejemplos/config.txt" download class="example-link">Descargar ejemplo config.txt</a>
-                        <a href="/ejemplos/peticions.txt" download class="example-link">Descargar ejemplo peticions.txt</a>
-                    </div>
-                </div>
-
                 <div class="upload-btn-group">
                     <button type="submit" class="upload-submit btn btn-primary btn-lg">Generar Agenda</button>
                 </div>
             </form>
         </div>
     </div>
-
+    </div>
     <script>
         (function () {
             'use strict'
@@ -68,137 +56,37 @@
             // Obtener el formulario
             var form = document.getElementById('uploadForm');
 
-            // Función para validar el formato del archivo de configuración
-            function validarConfigFile(file) {
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const lines = e.target.result.split('\n');
-                        if (lines.length < 2) {
-                            reject('El archivo config.txt debe tener al menos 2 líneas');
-                            return;
-                        }
-                        
-                        // Validar primera línea (año y mes)
-                        const primeraLinea = lines[0].trim().split(' ');
-                        if (primeraLinea.length !== 2 || 
-                            !/^\d{4}$/.test(primeraLinea[0]) || 
-                            !/^\d{1,2}$/.test(primeraLinea[1])) {
-                            reject('La primera línea debe contener año y mes (ejemplo: 2008 11)');
-                            return;
-                        }
-                        
-                        // Validar segunda línea (idiomas)
-                        const segundaLinea = lines[1].trim().split(' ');
-                        if (segundaLinea.length !== 2 || 
-                            !/^[A-Z]{3}$/.test(segundaLinea[0]) || 
-                            !/^[A-Z]{3}$/.test(segundaLinea[1])) {
-                            reject('La segunda línea debe contener dos códigos de idioma (ejemplo: ESP ENG)');
-                            return;
-                        }
-                        
-                        resolve();
-                    };
-                    reader.onerror = () => reject('Error al leer el archivo');
-                    reader.readAsText(file);
-                });
-            }
-
-            // Función para validar el formato del archivo de peticiones
-            function validarPeticionesFile(file) {
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const lines = e.target.result.split('\n');
-                        if (lines.length === 0) {
-                            reject('El archivo peticions.txt no puede estar vacío');
-                            return;
-                        }
-                        
-                        // Validar cada línea
-                        for (let i = 0; i < lines.length; i++) {
-                            const line = lines[i].trim();
-                            if (line === '') continue;
-                            
-                            const parts = line.split(' ');
-                            if (parts.length !== 6) {
-                                reject(`Error en la línea ${i + 1}: formato incorrecto`);
-                                return;
-                            }
-                            
-                            // Validar fechas
-                            if (!/^\d{2}\/\d{2}\/\d{4}$/.test(parts[2]) || 
-                                !/^\d{2}\/\d{2}\/\d{4}$/.test(parts[3])) {
-                                reject(`Error en la línea ${i + 1}: formato de fecha incorrecto`);
-                                return;
-                            }
-                            
-                            // Validar días
-                            if (!/^[LMCJVSG]+$/.test(parts[4])) {
-                                reject(`Error en la línea ${i + 1}: formato de días incorrecto`);
-                                return;
-                            }
-                            
-                            // Validar horarios
-                            if (!/^\d{2}-\d{2}(_\d{2}-\d{2})*$/.test(parts[5])) {
-                                reject(`Error en la línea ${i + 1}: formato de horarios incorrecto`);
-                                return;
-                            }
-                        }
-                        
-                        resolve();
-                    };
-                    reader.onerror = () => reject('Error al leer el archivo');
-                    reader.readAsText(file);
-                });
-            }
-
-            // Agregar validación personalizada para los nombres de archivo y formato
-            form.addEventListener('submit', async function (event) {
+            // Agregar validación personalizada para los nombres de archivo
+            form.addEventListener('submit', function (event) {
                 event.preventDefault();
                 event.stopPropagation();
 
                 let isValid = true;
-                const configFile = document.getElementById('configFile');
-                const peticionesFile = document.getElementById('peticionesFile');
-                const configError = document.getElementById('configError');
-                const peticionesError = document.getElementById('peticionesError');
-                const configFormatError = document.getElementById('configFormatError');
-                const peticionesFormatError = document.getElementById('peticionesFormatError');
-
-                // Ocultar todos los mensajes de error
-                [configError, peticionesError, configFormatError, peticionesFormatError].forEach(el => el.style.display = 'none');
 
                 // Validar archivo de configuración
+                const configFile = document.getElementById('configFile');
+                const configError = document.getElementById('configError');
                 if (configFile.files.length === 0) {
+                    configError.style.display = 'none';
                     isValid = false;
                 } else if (configFile.files[0].name !== 'config.txt') {
                     configError.style.display = 'block';
                     isValid = false;
                 } else {
-                    try {
-                        await validarConfigFile(configFile.files[0]);
-                    } catch (error) {
-                        configFormatError.innerHTML = error;
-                        configFormatError.style.display = 'block';
-                        isValid = false;
-                    }
+                    configError.style.display = 'none';
                 }
 
                 // Validar archivo de peticiones
+                const peticionesFile = document.getElementById('peticionesFile');
+                const peticionesError = document.getElementById('peticionesError');
                 if (peticionesFile.files.length === 0) {
+                    peticionesError.style.display = 'none';
                     isValid = false;
                 } else if (peticionesFile.files[0].name !== 'peticions.txt') {
                     peticionesError.style.display = 'block';
                     isValid = false;
                 } else {
-                    try {
-                        await validarPeticionesFile(peticionesFile.files[0]);
-                    } catch (error) {
-                        peticionesFormatError.innerHTML = error;
-                        peticionesFormatError.style.display = 'block';
-                        isValid = false;
-                    }
+                    peticionesError.style.display = 'none';
                 }
 
                 form.classList.add('was-validated');
