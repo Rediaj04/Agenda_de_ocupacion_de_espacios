@@ -32,11 +32,11 @@
 
                 <!-- Tabla de horarios por semanas -->
                 <div class="agenda-table-wrapper" th:each="semana : ${sala.weekMonth}">
-                    <h4 th:text="'Semana ' + ${semana.weekNumber}"></h4>
+                    <h4 th:text="${semana.weekName}"></h4>
                     <table class="agenda-table">
                         <thead>
                             <tr>
-                                <th>Hora</th>
+                                <th th:text="${@agendaController.getTranslation('HOUR')}"></th>
                                 <th class="agenda-day" th:each="dia, diaStat : ${diasSemana}">
                                     <div th:text="${dia}"></div>
                                     <!-- Buscar el día correspondiente en la semana actual para mostrar su número -->

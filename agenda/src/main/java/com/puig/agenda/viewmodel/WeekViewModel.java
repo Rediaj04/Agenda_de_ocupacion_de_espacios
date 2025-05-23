@@ -4,6 +4,7 @@ import java.util.List;
 
 public class WeekViewModel {
     private int weekNumber;
+    private String weekName;
     private List<DayViewModel> days;
 
     public WeekViewModel() {};
@@ -14,6 +15,14 @@ public class WeekViewModel {
 
     public void setWeekNumber(int weekNumber) {
         this.weekNumber = weekNumber;
+    }
+
+    public String getWeekName() {
+        return weekName;
+    }
+
+    public void setWeekName(String weekName) {
+        this.weekName = weekName;
     }
 
     public List<DayViewModel> getDays() {

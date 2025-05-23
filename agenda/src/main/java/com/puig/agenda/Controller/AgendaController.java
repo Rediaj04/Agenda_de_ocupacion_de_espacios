@@ -45,6 +45,24 @@ public class AgendaController {
             "ENG", Arrays.asList("M", "T", "W", "R", "F", "S", "U"),
             "CAT", Arrays.asList("DL", "DT", "DC", "DJ", "DV", "DS", "DG"));
 
+    private static final Map<String, Map<String, String>> TRANSLATIONS = Map.of(
+            "ESP", Map.of(
+                "ROOM", "Sala",
+                "WEEK", "Semana",
+                "HOUR", "Hora"
+            ),
+            "ENG", Map.of(
+                "ROOM", "Room",
+                "WEEK", "Week",
+                "HOUR", "Hour"
+            ),
+            "CAT", Map.of(
+                "ROOM", "Sala",
+                "WEEK", "Setmana",
+                "HOUR", "Hora"
+            )
+    );
+
     @Autowired
     private AgendaProcessor agendaService;
 
@@ -100,11 +118,13 @@ public class AgendaController {
         List<RoomViewModel> roomViewModels = new ArrayList<>();
         for (String roomName : result.finalSchedule().keySet()) {
             RoomViewModel roomVM = new RoomViewModel();
-            roomVM.setRoomName(roomName);
+            // Añadir el prefijo traducido al nombre de la sala
+            String roomPrefix = TRANSLATIONS.getOrDefault(config.getExitLanguage().toUpperCase(), TRANSLATIONS.get("ESP")).get("ROOM");
+            roomVM.setRoomName(roomPrefix + " " + roomName);
 
             // Organizar por semanas
             Map<LocalDate, Map<LocalTime, SlotInfo>> roomSchedule = result.finalSchedule().get(roomName);
-            roomVM.setWeekMonth(organizarPorSemanas(roomSchedule, config.getMonth(), config.getYear()));
+            roomVM.setWeekMonth(organizarPorSemanas(roomSchedule, config.getMonth(), config.getYear(), config));
 
             roomViewModels.add(roomVM);
         }
@@ -128,7 +148,7 @@ public class AgendaController {
      * Organiza los slots por semanas para una sala
      */
     private List<WeekViewModel> organizarPorSemanas(Map<LocalDate, Map<LocalTime, SlotInfo>> roomSchedule,
-            int month, int year) {
+            int month, int year, AgendaConfiguration config) {
         // Crear un mapa para agrupar por semana
         Map<Integer, List<DayViewModel>> diasPorSemana = new HashMap<>();
 
@@ -153,7 +173,7 @@ public class AgendaController {
             int semana = (diasDesdePrimerLunes / 7) + 1;
 
             // Crear el objeto de día con sus slots
-            DayViewModel dia = crearDiaViewModel(fecha, roomSchedule.get(fecha));
+            DayViewModel dia = crearDiaViewModel(fecha, roomSchedule.get(fecha), config);
 
             // Añadir a la semana correspondiente
             diasPorSemana.computeIfAbsent(semana, k -> new ArrayList<>()).add(dia);
@@ -163,7 +183,10 @@ public class AgendaController {
         return diasPorSemana.entrySet().stream()
                 .map(entry -> {
                     WeekViewModel semana = new WeekViewModel();
+                    // Añadir el prefijo traducido al número de semana
+                    String weekPrefix = TRANSLATIONS.getOrDefault(config.getExitLanguage().toUpperCase(), TRANSLATIONS.get("ESP")).get("WEEK");
                     semana.setWeekNumber(entry.getKey());
+                    semana.setWeekName(weekPrefix + " " + entry.getKey());
 
                     // Ordenar días por día de la semana
                     List<DayViewModel> dias = entry.getValue();
@@ -179,11 +202,19 @@ public class AgendaController {
     /**
      * Crea el objeto ViewModel para un día específico
      */
-    private DayViewModel crearDiaViewModel(LocalDate fecha, Map<LocalTime, SlotInfo> daySlots) {
+    private DayViewModel crearDiaViewModel(LocalDate fecha, Map<LocalTime, SlotInfo> daySlots, AgendaConfiguration config) {
         DayViewModel dia = new DayViewModel();
         dia.setNumeroDelMes(fecha.getDayOfMonth());
         dia.setDayOfWeek(fecha.getDayOfWeek().getValue());
-        dia.setNombreDiaSemana(fecha.getDayOfWeek().toString());
+        
+        // Obtener el índice del día de la semana (1-7)
+        int dayIndex = fecha.getDayOfWeek().getValue() - 1;
+        // Obtener el idioma de salida de la configuración
+        String language = config.getExitLanguage();
+        // Obtener la lista de días según el idioma
+        List<String> diasSemana = WEEK_DAYS.getOrDefault(language.toUpperCase(), WEEK_DAYS.get("ESP"));
+        // Establecer el nombre del día según el idioma
+        dia.setNombreDiaSemana(diasSemana.get(dayIndex));
 
         // Procesar celdas de horas
         List<AgendaCellViewModel> celdas = daySlots.entrySet().stream()
@@ -234,5 +265,13 @@ public class AgendaController {
     private String obtenerNombreMes(int month, String language) {
         String[] meses = MONTH_NAMES.getOrDefault(language.toUpperCase(), MONTH_NAMES.get("ESP"));
         return meses[month - 1];
+    }
+
+    /**
+     * Obtiene una traducción según el idioma actual
+     */
+    public String getTranslation(String key) {
+        String language = "ESP"; // Idioma por defecto
+        return TRANSLATIONS.getOrDefault(language.toUpperCase(), TRANSLATIONS.get("ESP")).get(key);
     }
 }
