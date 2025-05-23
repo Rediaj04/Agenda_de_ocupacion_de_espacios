@@ -37,17 +37,17 @@
     <script>
         (function () {
             'use strict'
-            
+
             // Obtener el formulario
             var form = document.getElementById('uploadForm');
-            
+
             // Agregar validación personalizada para los nombres de archivo
             form.addEventListener('submit', function (event) {
                 event.preventDefault();
                 event.stopPropagation();
-                
+
                 let isValid = true;
-                
+
                 // Validar archivo de configuración
                 const configFile = document.getElementById('configFile');
                 const configError = document.getElementById('configError');
@@ -60,7 +60,7 @@
                 } else {
                     configError.style.display = 'none';
                 }
-                
+
                 // Validar archivo de peticiones
                 const peticionesFile = document.getElementById('peticionesFile');
                 const peticionesError = document.getElementById('peticionesError');
@@ -73,9 +73,9 @@
                 } else {
                     peticionesError.style.display = 'none';
                 }
-                
+
                 form.classList.add('was-validated');
-                
+
                 if (isValid) {
                     form.submit();
                 }

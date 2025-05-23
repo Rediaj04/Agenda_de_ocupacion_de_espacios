@@ -92,6 +92,16 @@ public class AgendaService {
                 'S', DayOfWeek.SATURDAY,
                 'U', DayOfWeek.SUNDAY));
 
+        // Catalán
+        mappings.put("CAT", Map.of(
+                'L', DayOfWeek.MONDAY,
+                'M', DayOfWeek.TUESDAY,
+                'X', DayOfWeek.WEDNESDAY,
+                'J', DayOfWeek.THURSDAY,
+                'V', DayOfWeek.FRIDAY,
+                'S', DayOfWeek.SATURDAY,
+                'D', DayOfWeek.SUNDAY));
+
         return mappings;
     }
 
@@ -254,16 +264,32 @@ public class AgendaService {
             String[] times = hrStr.split("-");
             if (times.length == 2) {
                 try {
-                    LocalTime start = LocalTime.of(Integer.parseInt(times[0]), 0);
-                    LocalTime end = LocalTime.of(Integer.parseInt(times[1]), 0);
+                    // Manejo especial para la hora 24
+                    int startHour = Integer.parseInt(times[0]);
+                    int endHour = Integer.parseInt(times[1]);
+
+                    // Crear el tiempo de inicio
+                    LocalTime start = LocalTime.of(startHour, 0);
+
+                    // Crear el tiempo de fin, manejando el caso especial de 24:00
+                    LocalTime end;
+                    if (endHour == 24) {
+                        // Considerar 24:00 como el final del día (a efectos prácticos, 00:00 del día
+                        // siguiente)
+                        end = LocalTime.of(0, 0);
+                    } else {
+                        end = LocalTime.of(endHour, 0);
+                    }
 
                     // Manejar caso especial de medianoche
-                    if (end.equals(LocalTime.MIDNIGHT) && !start.equals(LocalTime.MIDNIGHT)) {
+                    if ((end.equals(LocalTime.MIDNIGHT) && !start.equals(LocalTime.MIDNIGHT))
+                            || endHour == 24) {
+                        // Usar el final del día para representar 24:00/00:00
                         end = LocalTime.MAX.truncatedTo(ChronoUnit.HOURS).plusHours(1);
                     }
 
                     // Validar que el rango sea válido
-                    if (start.isAfter(end) && !end.equals(LocalTime.MIDNIGHT)) {
+                    if (start.isAfter(end) && !end.equals(LocalTime.MIDNIGHT) && endHour != 24) {
                         createIncidence(request,
                                 String.format(
                                         "Rango horario inválido: la hora de inicio es posterior a la hora de fin en '%s'. Petición: %s",
@@ -331,10 +357,15 @@ public class AgendaService {
     /**
      * Convierte un java.util.Date a java.time.LocalDate
      */
-    private LocalDate dateToLocalDate(Date date) {
-        if (date == null) {
+    private LocalDate dateToLocalDate(java.util.Date utilDate) { // utilDate es el campo de tu clase Request
+        if (utilDate == null) {
+            logger.debug("Intentando convertir una fecha nula a LocalDate, devolviendo null.");
             return null;
         }
-        return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        // El método getTime() devuelve los milisegundos desde la época.
+        // Esto es seguro para java.util.Date y sus subclases como java.sql.Date.
+        return java.time.Instant.ofEpochMilli(utilDate.getTime())
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
     }
 }

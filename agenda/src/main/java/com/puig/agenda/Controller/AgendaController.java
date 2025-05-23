@@ -4,7 +4,6 @@ import java.util.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.time.Month;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -66,8 +65,16 @@ public class AgendaController {
 
             return "agenda";
         } catch (Exception e) {
-            // Manejar errores y mostrar página de error
-            model.addAttribute("error", "Error al procesar los archivos: " + e.getMessage());
+            // Imprimir el stack trace completo a la consola de errores estándar
+            System.err.println("Se ha producido una excepción durante el procesamiento de archivos:");
+            e.printStackTrace(System.err); // <<--- AÑADE O CAMBIA A ESTA LÍNEA
+
+            // También puedes mantener tu logger si lo tienes configurado
+            // logger.error("Error crítico en procesarArchivos", e);
+
+            model.addAttribute("error", "Error al procesar los archivos: " +
+                    (e.getMessage() == null ? "Excepción de tipo " + e.getClass().getName() + " (sin mensaje detallado)"
+                            : e.getMessage()));
             return "error";
         }
     }
@@ -203,6 +210,8 @@ public class AgendaController {
             return Arrays.asList("L", "M", "X", "J", "V", "S", "D");
         } else if ("ENG".equalsIgnoreCase(language)) {
             return Arrays.asList("M", "T", "W", "T", "F", "S", "S");
+        } else if ("CAT".equalsIgnoreCase(language)) {
+            return Arrays.asList("DL", "DT", "DC", "DJ", "DV", "DS", "DG");
         } else {
             // Idioma por defecto
             return Arrays.asList("L", "M", "X", "J", "V", "S", "D");
@@ -232,10 +241,14 @@ public class AgendaController {
                 "Octubre", "Noviembre", "Diciembre" };
         String[] mesesENG = { "January", "February", "March", "April", "May", "June", "July", "August", "September",
                 "October", "November", "December" };
+        String[] mesesCAT = { "Gener", "Febrer", "Març", "Abril", "Maig", "Juny", "Juliol", "Agost", "Setembre",
+                "Octubre", "Novembre", "Desembre" };
         if ("ENG".equalsIgnoreCase(language)) {
             return mesesENG[month - 1];
+        } else if ("CAT".equalsIgnoreCase(language)) {
+            return mesesCAT[month - 1];
         } else {
-            return mesesESP[month - 1];
+            return mesesESP[month - 1]; // Español por defecto
         }
     }
 

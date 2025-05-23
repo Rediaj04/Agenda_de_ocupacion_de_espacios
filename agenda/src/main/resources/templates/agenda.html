@@ -28,7 +28,7 @@
                  class="agenda-sala"
                  th:id="'sala-' + ${sala.roomName}"
                  th:style="${salaStat.first} ? 'display: block;' : 'display: none;'">
-                
+
                 <h3 th:text="${sala.roomName}" class="agenda-sala-title"></h3>
 
                 <!-- Tabla de horarios por semanas -->
@@ -61,7 +61,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Sección de incidencias global -->
         <div class="agenda-incidencias" th:if="${not #lists.isEmpty(agenda.incidences)}">
             <h3 class="agenda-incidencias-title">Incidencias Detectadas</h3>
@@ -70,7 +70,6 @@
             </div>
         </div>
     </div>
-<!-- Conflicto en un div diferente, las dos salas en negrita + fondo a la sala seleccionada, dias y horas en negro -->
     <script src="js/agenda.js"></script>
 </body>
 </html>
