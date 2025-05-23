@@ -5,49 +5,71 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Subir Archivos - Agenda de Espacios</title>
     <link href="css/upload.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <div class="upload-wrapper">
         <div class="upload-box">
             <h2 class="upload-title">Agenda de Ocupación de Espacios</h2>
             
-            <!-- Sección de archivos de ejemplo -->
-            <div class="example-files">
-                <h3>Archivos de Ejemplo</h3>
-                <p>Descarga los archivos de ejemplo para ver el formato correcto:</p>
-                <div class="example-files-links">
-                    <a href="/ejemplos/config.txt" class="example-link" download>
-                        <i class="fas fa-download"></i> config.txt
-                    </a>
-                    <a href="/ejemplos/peticions.txt" class="example-link" download>
-                        <i class="fas fa-download"></i> peticions.txt
-                    </a>
+            <div class="content-container">
+                <!-- Formulario de subida -->
+                <form th:action="@{/procesar}" method="post" enctype="multipart/form-data" class="upload-form needs-validation" novalidate id="uploadForm">
+                    <div class="upload-file-group">
+                        <label for="configFile" class="upload-label">Archivo de Configuración (config.txt)</label>
+                        <input type="file" class="upload-input form-control" id="configFile" name="configFile" required accept=".txt">
+                        <div class="upload-error-message">Por favor, seleccione un archivo.</div>
+                        <div class="upload-error-name" id="configError" style="display: none;">
+                            El archivo debe llamarse exactamente "config.txt"
+                        </div>
+                    </div>
+                    <div class="upload-file-group">
+                        <label for="peticionesFile" class="upload-label">Archivo de Peticiones (peticions.txt)</label>
+                        <input type="file" class="upload-input form-control" id="peticionesFile" name="peticionesFile" required accept=".txt">
+                        <div class="upload-error-message">Por favor, seleccione un archivo.</div>
+                        <div class="upload-error-name" id="peticionesError" style="display: none;">
+                            El archivo debe llamarse exactamente "peticions.txt"
+                        </div>
+                    </div>
+                    <div class="upload-btn-group">
+                        <button type="submit" class="upload-submit btn btn-primary btn-lg">Generar Agenda</button>
+                    </div>
+                </form>
+
+                <!-- Separador visual -->
+                <div class="separator">
+                    <span>o</span>
+                </div>
+
+                <!-- Sección de archivos de ejemplo -->
+                <div class="example-files">
+                    <div class="example-header">
+                        <i class="fas fa-file-alt example-icon"></i>
+                        <h3>Descarga los archivos de ejemplo</h3>
+                    </div>
+                    <div class="example-files-links">
+                        <a href="/ejemplos/config.txt" class="example-link" download>
+                            <div class="example-link-content">
+                                <i class="fas fa-download"></i>
+                                <div class="example-link-text">
+                                    <span class="example-link-title">config.txt</span>
+                                    <span class="example-link-desc">Configuración del mes y año</span>
+                                </div>
+                            </div>
+                        </a>
+                        <a href="/ejemplos/peticions.txt" class="example-link" download>
+                            <div class="example-link-content">
+                                <i class="fas fa-download"></i>
+                                <div class="example-link-text">
+                                    <span class="example-link-title">peticions.txt</span>
+                                    <span class="example-link-desc">Lista de peticiones de reserva</span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
                 </div>
             </div>
-
-            <form th:action="@{/procesar}" method="post" enctype="multipart/form-data" class="upload-form needs-validation" novalidate id="uploadForm">
-                <div class="upload-file-group">
-                    <label for="configFile" class="upload-label">Archivo de Configuración (config.txt)</label>
-                    <input type="file" class="upload-input form-control" id="configFile" name="configFile" required accept=".txt">
-                    <div class="upload-error-message">Por favor, seleccione un archivo.</div>
-                    <div class="upload-error-name" id="configError" style="display: none;">
-                        El archivo debe llamarse exactamente "config.txt"
-                    </div>
-                </div>
-                <div class="upload-file-group">
-                    <label for="peticionesFile" class="upload-label">Archivo de Peticiones (peticions.txt)</label>
-                    <input type="file" class="upload-input form-control" id="peticionesFile" name="peticionesFile" required accept=".txt">
-                    <div class="upload-error-message">Por favor, seleccione un archivo.</div>
-                    <div class="upload-error-name" id="peticionesError" style="display: none;">
-                        El archivo debe llamarse exactamente "peticions.txt"
-                    </div>
-                </div>
-                <div class="upload-btn-group">
-                    <button type="submit" class="upload-submit btn btn-primary btn-lg">Generar Agenda</button>
-                </div>
-            </form>
         </div>
-    </div>
     </div>
     <script>
         (function () {
